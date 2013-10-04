@@ -135,7 +135,8 @@ public class main {
 								}
 							}
 						}
-						// if column is full or cannot be put in
+						// if column is full with over values
+						// or if the value cannot be put in because of other rows
 						if (currGrid[currRow][(currColSection * 3)] != currGridValue &&
 								currGrid[currRow][(currColSection * 3)+1] != currGridValue && 
 								currGrid[currRow][(currColSection * 3)+2] != currGridValue ) {
