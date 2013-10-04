@@ -27,7 +27,8 @@ public class main {
 			{0, 5, 7, 0, 0, 0, 6, 1, 0},
 			{0, 3, 0, 0, 1, 8, 9, 5, 0}
 		};*/
-		int[][] puzzleGrid = {
+		// hard puzzle
+		/*int[][] puzzleGrid = {
 			{0, 7, 0, 8, 0, 0, 0, 6, 0},
 			{2, 0, 0, 0, 0, 0, 7, 0, 8},
 			{0, 0, 0, 1, 2, 0, 0, 0, 3},
@@ -37,8 +38,31 @@ public class main {
 			{5, 0, 0, 0, 1, 4, 0, 0, 0},
 			{1, 0, 3, 0, 0, 0, 0, 0, 5},
 			{0, 9, 0, 0, 0, 8, 0, 4, 0}
+		};*/
+		// very hard puzzle?
+		/*int[][] puzzleGrid = {
+			{9, 0, 1, 0, 2, 0, 0, 0, 0},
+			{0, 0, 0, 0, 1, 0, 0, 4, 0},
+			{4, 0, 0, 0, 0, 7, 0, 8, 0},
+			{7, 0, 0, 9, 0, 0, 0, 0, 6},
+			{0, 8, 0, 0, 3, 0, 0, 1, 0},
+			{5, 0, 0, 0, 0, 1, 0, 0, 4},
+			{0, 2, 0, 3, 0, 0, 0, 0, 8},
+			{0, 6, 0, 0, 7, 0, 0, 0, 0},
+			{0, 0, 0, 0, 6, 0, 1, 0, 5}
+		};*/
+		int[][] puzzleGrid = {
+				{9, 0, 1, 0, 2, 0, 0, 0, 0},
+				{0, 0, 8, 0, 1, 0, 0, 4, 0},
+				{4, 0, 0, 0, 0, 7, 0, 8, 0},
+				{7, 0, 0, 9, 0, 0, 8, 0, 6},
+				{0, 8, 0, 0, 3, 0, 0, 1, 0},
+				{5, 0, 0, 0, 0, 1, 0, 0, 4},
+				{0, 2, 0, 3, 0, 0, 0, 0, 8},
+				{0, 6, 0, 0, 7, 0, 0, 0, 0},				
+				{0, 0, 0, 0, 6, 0, 1, 0, 5}
 		};
-		
+			
 		int[][] currGrid = new int[GRID_LENGTH][GRID_LENGTH];	// current working grid
 		int[] numbersLeft = {9, 9, 9, 9, 9, 9, 9, 9, 9};	// how many numbers have not been placed	
 		boolean changesMade = false;	// tracks if any changes were made
@@ -57,9 +81,13 @@ public class main {
 			System.out.println("Iteration " + iterationCount);
 			changesMade = false;
 			changesMade = PlaceInNumbers(currGrid, numbersLeft);
-			pivotGrid(currGrid);
+			pivotGrid(currGrid);	
+			// pivoting (flipping around) the grid and parsing horizontally is
+			// the same as parsing vertically
 			changesMade = PlaceInNumbers(currGrid, numbersLeft);
-			pivotGrid(currGrid);
+			pivotGrid(currGrid); 
+			// pivoting the grid again reverts it back to
+			// the original orientation
 			printGrid(currGrid);
 		}
 		
@@ -72,7 +100,11 @@ public class main {
 		printGrid(currGrid);*/
 
 	}
-
+	
+	/*
+	 * Goes through each number in the grid and passes them  to ParseSubgrids
+	 * to derive more numbers
+	 */
 	private static boolean PlaceInNumbers(int[][] currGrid, int[] numbersLeft) {
 		boolean changesMade = false;
 		for (int row = 0; row < GRID_LENGTH; row++) {
@@ -89,6 +121,9 @@ public class main {
 		
 	}
 
+	/*
+	 * Uses the current number and checks against adjacent columns
+	 */
 	private static boolean ParseSubgrids(int[][] currGrid, int row, int col,
 			int[] numbersLeft) {
 		int subGridRowSection = row / 3;
@@ -149,6 +184,10 @@ public class main {
 		return changesMade;
 	}
 
+	/*
+	 * Found two "matches" in two columns, so check the three cells within 
+	 * the third column for a match
+	 */
 	private static boolean parseMatch(int[][] currGrid, int row, int col,
 			int[] numbersLeft, int currRow,
 			int parseCurrCol) {
