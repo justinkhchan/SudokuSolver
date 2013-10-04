@@ -39,8 +39,8 @@ public class main {
 			{1, 0, 3, 0, 0, 0, 0, 0, 5},
 			{0, 9, 0, 0, 0, 8, 0, 4, 0}
 		};*/
-		// very hard puzzle?
-		/*int[][] puzzleGrid = {
+		// very hard puzzle
+		int[][] puzzleGrid = {
 			{9, 0, 1, 0, 2, 0, 0, 0, 0},
 			{0, 0, 0, 0, 1, 0, 0, 4, 0},
 			{4, 0, 0, 0, 0, 7, 0, 8, 0},
@@ -50,17 +50,6 @@ public class main {
 			{0, 2, 0, 3, 0, 0, 0, 0, 8},
 			{0, 6, 0, 0, 7, 0, 0, 0, 0},
 			{0, 0, 0, 0, 6, 0, 1, 0, 5}
-		};*/
-		int[][] puzzleGrid = {
-				{9, 0, 1, 0, 2, 0, 0, 0, 0},
-				{0, 0, 8, 0, 1, 0, 0, 4, 0},
-				{4, 0, 0, 0, 0, 7, 0, 8, 0},
-				{7, 0, 0, 9, 0, 0, 8, 0, 6},
-				{0, 8, 0, 0, 3, 0, 0, 1, 0},
-				{5, 0, 0, 0, 0, 1, 0, 0, 4},
-				{0, 2, 0, 3, 0, 0, 0, 0, 8},
-				{0, 6, 0, 0, 7, 0, 0, 0, 0},				
-				{0, 0, 0, 0, 6, 0, 1, 0, 5}
 		};
 			
 		int[][] currGrid = new int[GRID_LENGTH][GRID_LENGTH];	// current working grid
@@ -91,13 +80,8 @@ public class main {
 			printGrid(currGrid);
 		}
 		
-		
 		//ParseSubgrids(currGrid, 5, 0, numbersLeft, changesMade);
 		printGrid(currGrid);
-
-		/*makeChange(currGrid);
-		printGrid(puzzleGrid);
-		printGrid(currGrid);*/
 
 	}
 	
@@ -155,19 +139,10 @@ public class main {
 						if (currGrid[currRow][(currColSection * 3)] != currGridValue &&
 								currGrid[currRow][(currColSection * 3)+1] != currGridValue && 
 								currGrid[currRow][(currColSection * 3)+2] != currGridValue ) {
-							boolean checkCol1 = existsInCol(currGridValue, (currColSection * 3), currGrid);
-							boolean checkCol2 = existsInCol(currGridValue, (currColSection * 3)+1, currGrid);
-							boolean checkCol3 = existsInCol(currGridValue, (currColSection * 3)+2, currGrid);
-							// check to see if the cells are already occupied
-							if (currGrid[currRow][(currColSection * 3)] != 0) {
-								checkCol1 = true;
-							}
-							if (currGrid[currRow][(currColSection * 3)+1] != 0) {
-								checkCol2 = true;
-							}
-							if (currGrid[currRow][(currColSection * 3)+2] != 0) {
-								checkCol3 = true;
-							}
+							boolean checkCol1 = checkValWithCol(currGrid, (currColSection * 3), currRow, currGridValue);
+							boolean checkCol2 = checkValWithCol(currGrid, (currColSection * 3)+1, currRow, currGridValue);
+							boolean checkCol3 = checkValWithCol(currGrid, (currColSection * 3)+2, currRow, currGridValue);
+							
 							if (checkCol1 && checkCol2 && checkCol3) {
 								int targetRow = (subGridRowSection * 3) + (3 - (currRow % 3) - (row % 3));
 								int targetColumn = 3 - (currColSection % 3) - (subGridColSection %3);
@@ -205,20 +180,14 @@ public class main {
 		if (currGrid[parseTargetRow][parseTargetCol] != currGridValue &&
 				currGrid[parseTargetRow][parseTargetCol+1] != currGridValue && 
 				currGrid[parseTargetRow][parseTargetCol+2] != currGridValue ) {
-			boolean checkCol1 = existsInCol(currGridValue, parseTargetCol, currGrid);
-			boolean checkCol2 = existsInCol(currGridValue, parseTargetCol + 1, currGrid);
-			boolean checkCol3 = existsInCol(currGridValue, parseTargetCol + 2, currGrid);
-			
+
 			// check to see if the cells are already occupied
-			if (currGrid[parseTargetRow][parseTargetCol] != 0) {
-				checkCol1 = true;
-			}
-			if (currGrid[parseTargetRow][parseTargetCol+1] != 0) {
-				checkCol2 = true;
-			}
-			if (currGrid[parseTargetRow][parseTargetCol+2] != 0) {
-				checkCol3 = true;
-			}
+			boolean checkCol1 = checkValWithCol(currGrid, parseTargetCol,
+					parseTargetRow, currGridValue);
+			boolean checkCol2 = checkValWithCol(currGrid, parseTargetCol+1,
+					parseTargetRow, currGridValue);
+			boolean checkCol3 = checkValWithCol(currGrid, parseTargetCol+2,
+							parseTargetRow, currGridValue);
 
 			if (checkCol1 && checkCol2) {
 				currGrid[parseTargetRow][parseTargetCol+2] = currGridValue;
@@ -238,7 +207,21 @@ public class main {
 		return changesMade;
 	}
 
-	
+	/* 
+	 * Checks if a value exists as well as checks the column for a match
+	 */
+	private static boolean checkValWithCol(int[][] currGrid,
+			int parseTargetCol, int parseTargetRow, int currGridValue) {
+		boolean checkCol1 = existsInCol(currGridValue, parseTargetCol, currGrid);
+		if (currGrid[parseTargetRow][parseTargetCol] != 0) {
+			checkCol1 = true;
+		}
+		return checkCol1;
+	}
+
+	/**
+	 * Checks the column for a match
+	 */
 	private static boolean existsInCol(int value, int col, int[][] currGrid) {
 		boolean existsFlag = false;
 		for (int row = 0; row < GRID_LENGTH; row++) {
@@ -249,6 +232,9 @@ public class main {
 		return existsFlag;
 	}
 
+	/**
+	 * Checks the row for a match
+	 */
 	private boolean existsInRow(int value, int row, int[][] currGrid) {
 		boolean existsFlag = false;
 		for (int col = 0; col < GRID_LENGTH; col++) {
@@ -282,13 +268,8 @@ public class main {
 		}
 	}
 	
-	
 
-	/*private static void makeChange(int[][] puzzleGrid) {
-		puzzleGrid[0][0] = 5;
-	}*/
-
-	/*
+	/**
 	 * Formats and prints a grid
 	 */
 	private static void printGrid(int[][] puzzleGrid) {
