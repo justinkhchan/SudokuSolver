@@ -31,7 +31,7 @@ public class main {
 			{0, 5, 7, 0, 0, 0, 6, 1, 0},
 			{0, 3, 0, 0, 1, 8, 9, 5, 0}
 		};*/
-		// hard puzzle
+		// medium puzzle
 		/*int[][] puzzleGrid = {
 			{0, 7, 0, 8, 0, 0, 0, 6, 0},
 			{2, 0, 0, 0, 0, 0, 7, 0, 8},
@@ -43,7 +43,7 @@ public class main {
 			{1, 0, 3, 0, 0, 0, 0, 0, 5},
 			{0, 9, 0, 0, 0, 8, 0, 4, 0}
 		};*/
-		// very hard puzzle
+		// hard puzzle
 		/*int[][] puzzleGrid = {
 			{9, 0, 1, 0, 2, 0, 0, 0, 0},
 			{0, 0, 0, 0, 1, 0, 0, 4, 0},
@@ -55,8 +55,8 @@ public class main {
 			{0, 6, 0, 0, 7, 0, 0, 0, 0},
 			{0, 0, 0, 0, 6, 0, 1, 0, 5}
 		};*/
-		// impossible puzzle 2?
-		int[][] puzzleGrid = {
+		// very hard puzzle
+		/*int[][] puzzleGrid = {
 			{0, 0, 4, 0, 0, 6, 0, 0, 7},
 			{0, 7, 0, 0, 3, 0, 0, 8, 0},
 			{5, 0, 0, 8, 0, 0, 6, 0, 0},
@@ -66,7 +66,8 @@ public class main {
 			{0, 0, 3, 0, 0, 5, 0, 0, 1},
 			{0, 9, 0, 0, 4, 0, 0, 2, 0},
 			{8, 0, 0, 9, 0, 0, 4, 0, 0}
-		};
+		};*/
+		// "hardest" puzzle
 		/*int[][] puzzleGrid = {
 			{1, 0, 0, 0, 0, 7, 0, 9, 0},
 			{0, 3, 0, 0, 2, 0, 0, 0, 8},
@@ -78,8 +79,8 @@ public class main {
 			{0, 4, 0, 0, 0, 0, 0, 0, 7},
 			{0, 0, 7, 0, 0, 0, 3, 0, 0}
 		};*/
-		// impossible puzzle 2?
-		/*int[][] puzzleGrid = {
+		// "hardest" puzzle 2
+		int[][] puzzleGrid = {
 			{8, 0, 0, 0, 0, 0, 0, 0, 0},
 			{0, 0, 3, 6, 0, 0, 0, 0, 0},
 			{0, 7, 0, 0, 9, 0, 2, 0, 0},
@@ -89,7 +90,7 @@ public class main {
 			{0, 0, 1, 0, 0, 0, 0, 6, 8},
 			{0, 0, 8, 5, 0, 0, 0, 1, 0},
 			{0, 9, 0, 0, 0, 0, 4, 0, 0}
-		};*/
+		};
 		
 		int[][] currGrid = new int[GRID_LENGTH][GRID_LENGTH];	// current working grid
 		HashSet[][] pencilMarks = new HashSet[GRID_LENGTH][GRID_LENGTH];	// pencil marks for each cell
@@ -137,7 +138,265 @@ public class main {
 		
 		//ParseSubgrids(currGrid, 5, 0, numbersLeft, changesMade);
 		printGrid(currGrid, pencilMarks);
+		
+		if (!checkValidity(currGrid, pencilMarks)) {	// regular pattern methods unable to solve grid
+			System.out.println("Cannot solve with regular patterns, using search method...");
+			// Search code
+			
+			// create a copy of the grid just in case
+			int[][] searchGrid = new int[GRID_LENGTH][GRID_LENGTH];
+			copyContents(currGrid, searchGrid);
+			
+			if (!searchSolve(searchGrid, pencilMarks)) {
+				System.out.println("Impossible grid detected");
+			}
+			//printGrid(searchGrid, pencilMarks);
+			
+		}
 
+	}
+	
+	/****************************************
+	 * 
+	 * SEARCH SOLVE (BACKTRACKING) METHODS
+	 * 
+	 *****************************************/
+	
+	private static boolean searchSolve(int[][] searchGrid, HashSet[][] pencilMarks) {
+		Sudoku newSudoku = new Sudoku(searchGrid);
+		return searchRecurse(newSudoku, pencilMarks);
+	}
+	
+	private static boolean searchRecurse(Sudoku currSudoku, HashSet[][] newPencilMarks) {
+		int rowCount = 0;
+		int colCount = 0;
+		
+		int[][] currGrid = new int[GRID_LENGTH][GRID_LENGTH];
+		currGrid = currSudoku.returnGrid();
+		
+		while ((rowCount < GRID_LENGTH) && (colCount < GRID_LENGTH) && currGrid[rowCount][colCount] != 0) {
+			 colCount++;
+			 if (colCount == GRID_LENGTH) {
+				 colCount = 0;
+				 rowCount++;
+			 }
+		}
+	
+		if (colCount < GRID_LENGTH && rowCount < GRID_LENGTH) {
+			for (int pencilCount = 0; pencilCount < newPencilMarks[rowCount][colCount].size(); pencilCount++) {
+				currGrid[rowCount][colCount] = (int) newPencilMarks[rowCount][colCount].toArray()[pencilCount];
+				//System.out.println("Count" + colCount + ":");
+				//printGrid(currGrid, newPencilMarks);
+				//newPencilMarks[rowCount][colCount].remove(newPencilMarks[rowCount][colCount].toArray()[pencilCount]);
+				/*if (checkContradiction(currGrid, newPencilMarks)) {
+					return false;
+				}*/
+
+				if (checkValidity(currGrid, newPencilMarks)) {
+					printGrid(currGrid, newPencilMarks);
+					return true;
+				}
+				//System.out.println("Row: " + rowCount + " Col: " + colCount + " Marks Index: " + pencilCount);			//System.out.println(rowCount + " " + colCount);
+				Sudoku newSudoku = new Sudoku(currGrid);
+				if (!checkContradiction(currGrid, newPencilMarks)) {
+					searchRecurse(newSudoku, newPencilMarks);
+				}
+				currGrid[rowCount][colCount] = 0;
+				//System.out.println("Count" + colCount + ":");
+				//printGrid(newSearchGrid, newPencilMarks);
+			}
+			currGrid[rowCount][colCount] = 0;
+		}
+	
+	return true;
+	}
+	
+	
+	/*
+	private static boolean searchSolve(int[][] searchGrid, HashSet[][] pencilMarks) {
+		ArrayList searchGridList = new ArrayList();
+		for (int row = 0; row < GRID_LENGTH; row++) {
+			ArrayList newColList = new ArrayList();
+			for (int col = 0; col < GRID_LENGTH; col++) {
+				newColList.add(searchGrid[row][col]);
+			}
+			searchGridList.add(newColList);
+		}
+		return searchRecurse(searchGridList, pencilMarks, 0);
+	}
+	
+	private static boolean checkValidityList(ArrayList gridArrayList, HashSet[][] pencilMarks) {
+		int[][] searchGrid = arraylistToArray(gridArrayList);
+		
+		return checkValidity(searchGrid, pencilMarks);
+	}
+
+	private static int[][] arraylistToArray(ArrayList gridArrayList) {
+		int[][] searchGrid = new int[GRID_LENGTH][GRID_LENGTH];
+		for (int row = 0; row < GRID_LENGTH; row++) {
+			for (int col = 0; col < GRID_LENGTH; col++) {
+				searchGrid[row][col] = (int) ((ArrayList) gridArrayList.get(row)).get(col);
+			}
+		}
+		return searchGrid;
+	}*/
+	
+	/*private static boolean searchRecurse(ArrayList newSearchGrid, HashSet[][] newPencilMarks, int marksIndex) {
+		//int[][] newSearchGrid = new int[GRID_LENGTH][GRID_LENGTH];
+		//HashSet[][] newPencilMarks = new HashSet[GRID_LENGTH][GRID_LENGTH];
+		
+		//copyContents(searchGrid, newSearchGrid);
+		//copyContents (pencilMarks, newPencilMarks);
+		
+		int rowCount = 0;
+		int colCount = 0;
+		while ((rowCount < GRID_LENGTH) && (colCount < GRID_LENGTH) && (int)((ArrayList) newSearchGrid.get(rowCount)).get(colCount) != 0) {
+			 colCount++;
+			 if (colCount == GRID_LENGTH) {
+				 colCount = 0;
+				 rowCount++;
+			 }
+		}
+		
+		if (colCount < GRID_LENGTH && rowCount < GRID_LENGTH) {
+			if (marksIndex < newPencilMarks[rowCount][colCount].size()) {
+				ArrayList newInstance = new ArrayList();
+				newInstance.addAll(newSearchGrid);
+				searchRecurse(newInstance, newPencilMarks, marksIndex+1);
+			
+				System.out.println("Row: " + rowCount + " Col: " + colCount + " Marks Index: " + marksIndex);
+				//printGrid(newSearchGrid, newPencilMarks);
+				ArrayList newInstance2 = new ArrayList();
+				newInstance2.addAll(newSearchGrid);
+				((ArrayList) newInstance2.get(rowCount)).set(colCount, (int) newPencilMarks[rowCount][colCount].toArray()[marksIndex]);
+				if (checkValidityList(newInstance2, newPencilMarks)) {
+					int[][] searchGridArray = arraylistToArray(newInstance2);
+					printGrid(searchGridArray, newPencilMarks);
+				}
+				searchRecurse(newInstance2, newPencilMarks, 0);
+				((ArrayList) newSearchGrid.get(rowCount)).set(colCount, 0);
+				//newSearchGrid[rowCount][colCount] = 0;
+			}*/
+			/*for (int pencilCount = 0; pencilCount < newPencilMarks[rowCount][colCount].size(); pencilCount++) {
+				newSearchGrid[rowCount][colCount] = (int) newPencilMarks[rowCount][colCount].toArray()[pencilCount];
+				//System.out.println("Count" + colCount + ":");
+				//printGrid(newSearchGrid, newPencilMarks);
+				//newPencilMarks[rowCount][colCount].remove(newPencilMarks[rowCount][colCount].toArray()[pencilCount]);
+				if (checkValidity(newSearchGrid, newPencilMarks)) {
+					printGrid(newSearchGrid, newPencilMarks);
+				}
+				//System.out.println(rowCount + " " + colCount);
+				searchRecurse(newSearchGrid, newPencilMarks);
+				newSearchGrid[rowCount][colCount] = 0;
+				//System.out.println("Count" + colCount + ":");
+				//printGrid(newSearchGrid, newPencilMarks);
+			}*/
+	/*	}
+		return true;
+	}*/
+	/****************************************
+	 * 
+	 * CHECK CONTRADICTION METHODS
+	 * 
+	 *****************************************/
+	private static boolean checkContradiction(int[][] currGrid, HashSet[][] pencilMarkers) {
+		boolean contradiction = false;
+		if (checkColContra(currGrid)) {
+			contradiction = true;
+		}
+		pivotGridAndMarks(currGrid, pencilMarkers);
+		if (checkColContra(currGrid)) {
+			contradiction = true;
+		}
+		pivotGridAndMarks(currGrid, pencilMarkers);
+		return contradiction;
+	}
+	
+	private static boolean checkColContra(int[][] currGrid) {
+		for (int row = 0; row < GRID_LENGTH; row++) {
+			HashSet totalNumbers = new HashSet();
+			for (int col = 0; col < GRID_LENGTH; col++) {
+				int currValue = currGrid[row][col];
+				if (currValue != 0) {
+					if (totalNumbers.contains(currValue)) {
+						return true;
+					} else {
+						totalNumbers.add(currValue);
+					}
+				}
+			}
+		}
+		return false;
+	}
+	
+	/****************************************
+	 * 
+	 * CHECK VALIDITY METHODS
+	 * 
+	 *****************************************/
+	
+	private static boolean checkValidity(int[][] currGrid, HashSet[][] pencilMarks) {
+		if (!checkColumns(currGrid)) {
+			return false;
+		}
+		pivotGridAndMarks(currGrid, pencilMarks);
+		if (!checkColumns(currGrid)) {
+			pivotGridAndMarks(currGrid, pencilMarks);	// make sure grid is pivoted back to 
+														// right direction even if failed
+			return false;
+		} else {
+			pivotGridAndMarks(currGrid, pencilMarks); // re-pivot
+		}
+		if (!checkSubgrids(currGrid)) {
+			return false;
+		}
+		return true;
+	}
+	
+	private static boolean checkSubgrids(int[][] currGrid) {
+		HashSet oneToNine = new HashSet();
+		for (int number = 1; number <= GRID_LENGTH; number++) {
+			oneToNine.add(number);
+		}
+		
+		HashSet testGridSet = new HashSet();
+		for (int rowSection = 0; rowSection < 3; rowSection++) {
+			for (int colSection = 0; colSection < 3; colSection++) {
+				testGridSet.clear();
+				for (int rowInc = 0; rowInc < 3; rowInc++) {
+					for (int colInc = 0; colInc < 3; colInc++) {
+						testGridSet.add(
+								currGrid[(rowSection*3)+rowInc][(colSection*3)+colInc]);
+					}
+				}
+				if (!oneToNine.equals(testGridSet)) {
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
+	
+	private static boolean checkColumns(int[][] currGrid) {
+		HashSet oneToNine = new HashSet();
+		for (int number = 1; number <= GRID_LENGTH; number++) {
+			oneToNine.add(number);
+		}
+		
+		HashSet testColumnSet = new HashSet();
+		
+		for (int row = 0; row < GRID_LENGTH; row++) {
+			testColumnSet.clear();
+			for (int col = 0; col < GRID_LENGTH; col++) {
+				testColumnSet.add(currGrid[row][col]);
+			}
+			if (!oneToNine.equals(testColumnSet)) {
+				return false;
+			}
+		}
+		
+		return true;
 	}
 	
 	/****************************************
