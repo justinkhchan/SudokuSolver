@@ -139,7 +139,13 @@ public class main {
 		printGrid(currGrid, pencilMarks);
 
 	}
-
+	
+	/****************************************
+	 * 
+	 * PENCIL MARKER METHODS
+	 * 
+	 *****************************************/
+	
 	private static boolean clearMarkers(int[][] currGrid,
 			HashSet[][] pencilMarks) {
 		boolean changesMade = false;
