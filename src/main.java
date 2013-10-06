@@ -2,25 +2,30 @@ import java.util.*;
 
 
 /**
- * @author Justin
- *
+ * @author Justin Chan
+ * @description 
+ * 	Sudoku solving program consisting of three main strategies:
+ * 		1) Parsing three columns within three adjacent subgrids
+ * 		2) Utilizing pencil marks, and using elimination to leave only one possible value
+ * 		3) If the above two methods do not succeed, use the backtracking search method to
+ * 			exhaust all possibilities, but check for contradictions in order to process
+ * 			much fewer possibilities  
+ * 
  */
-public class main {
+
+public class Main {
 
 	private static final int GRID_LENGTH = 9;
-	
-	public main() {
-		// TODO Auto-generated constructor stub
-	}
+	private static final int SUB_LENGTH = 3;
 
 	/**
-	 * @param args
+	 * Initializing Method
 	 */
 	public static void main(String[] args) {
 		
 		// original puzzle grid
 		// easy puzzle
-		/*int[][] puzzleGrid = { 
+		int[][] puzzleGrid = { 
 			{0, 6, 5, 4, 8, 0, 0, 3, 0},
 			{0, 1, 9, 0, 0, 0, 5, 4, 0},
 			{0, 0, 0, 0, 0, 9, 0, 8, 0},
@@ -30,7 +35,8 @@ public class main {
 			{0, 8, 0, 9, 0, 0, 0, 0, 0},
 			{0, 5, 7, 0, 0, 0, 6, 1, 0},
 			{0, 3, 0, 0, 1, 8, 9, 5, 0}
-		};*/
+		};
+		
 		// medium puzzle
 		/*int[][] puzzleGrid = {
 			{0, 7, 0, 8, 0, 0, 0, 6, 0},
@@ -43,6 +49,7 @@ public class main {
 			{1, 0, 3, 0, 0, 0, 0, 0, 5},
 			{0, 9, 0, 0, 0, 8, 0, 4, 0}
 		};*/
+		
 		// hard puzzle
 		/*int[][] puzzleGrid = {
 			{9, 0, 1, 0, 2, 0, 0, 0, 0},
@@ -55,6 +62,7 @@ public class main {
 			{0, 6, 0, 0, 7, 0, 0, 0, 0},
 			{0, 0, 0, 0, 6, 0, 1, 0, 5}
 		};*/
+		
 		// very hard puzzle
 		/*int[][] puzzleGrid = {
 			{0, 0, 4, 0, 0, 6, 0, 0, 7},
@@ -67,7 +75,8 @@ public class main {
 			{0, 9, 0, 0, 4, 0, 0, 2, 0},
 			{8, 0, 0, 9, 0, 0, 4, 0, 0}
 		};*/
-		// "hardest" puzzle
+		
+		// "hardest" puzzle (long processing time)
 		/*int[][] puzzleGrid = {
 			{1, 0, 0, 0, 0, 7, 0, 9, 0},
 			{0, 3, 0, 0, 2, 0, 0, 0, 8},
@@ -79,8 +88,9 @@ public class main {
 			{0, 4, 0, 0, 0, 0, 0, 0, 7},
 			{0, 0, 7, 0, 0, 0, 3, 0, 0}
 		};*/
-		// "hardest" puzzle 2
-		int[][] puzzleGrid = {
+		
+		// "hardest" puzzle 2 (takes very, very long to process)
+		/*int[][] puzzleGrid = {
 			{8, 0, 0, 0, 0, 0, 0, 0, 0},
 			{0, 0, 3, 6, 0, 0, 0, 0, 0},
 			{0, 7, 0, 0, 9, 0, 2, 0, 0},
@@ -90,14 +100,14 @@ public class main {
 			{0, 0, 1, 0, 0, 0, 0, 6, 8},
 			{0, 0, 8, 5, 0, 0, 0, 1, 0},
 			{0, 9, 0, 0, 0, 0, 4, 0, 0}
-		};
+		};*/
 		
 		int[][] currGrid = new int[GRID_LENGTH][GRID_LENGTH];	// current working grid
 		HashSet[][] pencilMarks = new HashSet[GRID_LENGTH][GRID_LENGTH];	// pencil marks for each cell
 		int[] numbersLeft = {9, 9, 9, 9, 9, 9, 9, 9, 9};	// how many numbers have not been placed	
 		boolean changesMade = false;	// tracks if any changes were made
 		
-		copyContents(puzzleGrid, currGrid);
+		copyContents(puzzleGrid, currGrid);	// preserve original grid just in case
 		initialCount(currGrid, numbersLeft);
 		initialPencils(currGrid, pencilMarks);
 		clearNumbers(currGrid, pencilMarks);
@@ -106,17 +116,17 @@ public class main {
 		changesMade = true;
 		
 		int iterationCount = 0;
-		while (changesMade == true) {
+		while (changesMade == true) {	// new changes made, re-parse
 			iterationCount++;
-			System.out.println("Iteration " + iterationCount);
+			System.out.println(">> Iteration " + iterationCount);
 			changesMade = false;
-			if (PlaceInNumbers(currGrid, pencilMarks, numbersLeft)) {
+			if (placeInNumbers(currGrid, pencilMarks, numbersLeft)) {
 				changesMade = true;
 			}
 			pivotGridAndMarks(currGrid, pencilMarks);	
 			// pivoting (flipping around) the grid and parsing horizontally is
 			// the same as parsing vertically
-			if (PlaceInNumbers(currGrid, pencilMarks, numbersLeft)) {
+			if (placeInNumbers(currGrid, pencilMarks, numbersLeft)) {
 				changesMade = true;
 			}
 			pivotGridAndMarks(currGrid, pencilMarks); 
@@ -125,32 +135,32 @@ public class main {
 			if (clearNumbers(currGrid, pencilMarks)) {	// update pencil marks
 				changesMade = true;
 			}
-			if (clearMarkers(currGrid, pencilMarks)) {	// update pencil marks
+			if (clearColumns(currGrid, pencilMarks)) {
 				changesMade = true;
 			}
 			pivotGridAndMarks(currGrid, pencilMarks);
-			if (clearMarkers(currGrid, pencilMarks)) {	// update pencil marks
+			if (clearColumns(currGrid, pencilMarks)) {
 				changesMade = true;
 			}
 			pivotGridAndMarks(currGrid, pencilMarks);
 			printGrid(currGrid, pencilMarks);
 		}
 		
-		//ParseSubgrids(currGrid, 5, 0, numbersLeft, changesMade);
+		System.out.println(">> Used all parsing and pattern matching methods:");
 		printGrid(currGrid, pencilMarks);
 		
 		if (!checkValidity(currGrid, pencilMarks)) {	// regular pattern methods unable to solve grid
-			System.out.println("Cannot solve with regular patterns, using search method...");
 			// Search code
+			System.out.println("Cannot solve with regular patterns, using search method... " +
+					"(can take up to several minutes)");
 			
 			// create a copy of the grid just in case
 			int[][] searchGrid = new int[GRID_LENGTH][GRID_LENGTH];
 			copyContents(currGrid, searchGrid);
 			
 			if (!searchSolve(searchGrid, pencilMarks)) {
-				System.out.println("Impossible grid detected");
+				System.out.println("Impossible grid detected!");
 			}
-			//printGrid(searchGrid, pencilMarks);
 			
 		}
 
@@ -161,21 +171,32 @@ public class main {
 	 * SEARCH SOLVE (BACKTRACKING) METHODS
 	 * 
 	 *****************************************/
-	
+
+	/**
+	 * Initiate the recursive searching solving function
+	 */	
 	private static boolean searchSolve(int[][] searchGrid, HashSet[][] pencilMarks) {
 		Sudoku newSudoku = new Sudoku(searchGrid);
 		return searchRecurse(newSudoku, pencilMarks);
 	}
 	
-	private static boolean searchRecurse(Sudoku currSudoku, HashSet[][] newPencilMarks) {
+	/**
+	 * Main recursive search solving function 
+	 */		
+	private static boolean searchRecurse(Sudoku currSudoku, HashSet[][] pencilMarks) {
 		int rowCount = 0;
 		int colCount = 0;
 		
 		int[][] currGrid = new int[GRID_LENGTH][GRID_LENGTH];
 		currGrid = currSudoku.returnGrid();
 		
-		while ((rowCount < GRID_LENGTH) && (colCount < GRID_LENGTH) && currGrid[rowCount][colCount] != 0) {
+		// check if reached last cell of the row,
+		// if reached last row of the grid,
+		// and if the value is already filled in
+		while ((rowCount < GRID_LENGTH) && (colCount < GRID_LENGTH) 
+				&& currGrid[rowCount][colCount] != 0) {
 			 colCount++;
+			 // advance to next row
 			 if (colCount == GRID_LENGTH) {
 				 colCount = 0;
 				 rowCount++;
@@ -183,122 +204,40 @@ public class main {
 		}
 	
 		if (colCount < GRID_LENGTH && rowCount < GRID_LENGTH) {
-			for (int pencilCount = 0; pencilCount < newPencilMarks[rowCount][colCount].size(); pencilCount++) {
-				currGrid[rowCount][colCount] = (int) newPencilMarks[rowCount][colCount].toArray()[pencilCount];
-				//System.out.println("Count" + colCount + ":");
-				//printGrid(currGrid, newPencilMarks);
-				//newPencilMarks[rowCount][colCount].remove(newPencilMarks[rowCount][colCount].toArray()[pencilCount]);
-				/*if (checkContradiction(currGrid, newPencilMarks)) {
-					return false;
-				}*/
+			for (int pencilCount = 0; pencilCount < pencilMarks[rowCount][colCount].size(); pencilCount++) {
+				currGrid[rowCount][colCount] = (int) pencilMarks[rowCount][colCount].toArray()[pencilCount];
 
-				if (checkValidity(currGrid, newPencilMarks)) {
-					printGrid(currGrid, newPencilMarks);
+				// valid grid found
+				if (checkValidity(currGrid, pencilMarks)) {
+					printGrid(currGrid, pencilMarks);
 					return true;
 				}
-				//System.out.println("Row: " + rowCount + " Col: " + colCount + " Marks Index: " + pencilCount);			//System.out.println(rowCount + " " + colCount);
+
+				// Bind the data into a simple Sudoku object container
 				Sudoku newSudoku = new Sudoku(currGrid);
-				if (!checkContradiction(currGrid, newPencilMarks)) {
-					searchRecurse(newSudoku, newPencilMarks);
+				if (!checkContradiction(currGrid, pencilMarks)) {
+					if (searchRecurse(newSudoku, pencilMarks)) { // valid grid found
+						return true;
+					}
 				}
 				currGrid[rowCount][colCount] = 0;
-				//System.out.println("Count" + colCount + ":");
-				//printGrid(newSearchGrid, newPencilMarks);
 			}
 			currGrid[rowCount][colCount] = 0;
 		}
 	
-	return true;
+		// no valid grids found
+		return false;
 	}
 	
-	
-	/*
-	private static boolean searchSolve(int[][] searchGrid, HashSet[][] pencilMarks) {
-		ArrayList searchGridList = new ArrayList();
-		for (int row = 0; row < GRID_LENGTH; row++) {
-			ArrayList newColList = new ArrayList();
-			for (int col = 0; col < GRID_LENGTH; col++) {
-				newColList.add(searchGrid[row][col]);
-			}
-			searchGridList.add(newColList);
-		}
-		return searchRecurse(searchGridList, pencilMarks, 0);
-	}
-	
-	private static boolean checkValidityList(ArrayList gridArrayList, HashSet[][] pencilMarks) {
-		int[][] searchGrid = arraylistToArray(gridArrayList);
-		
-		return checkValidity(searchGrid, pencilMarks);
-	}
-
-	private static int[][] arraylistToArray(ArrayList gridArrayList) {
-		int[][] searchGrid = new int[GRID_LENGTH][GRID_LENGTH];
-		for (int row = 0; row < GRID_LENGTH; row++) {
-			for (int col = 0; col < GRID_LENGTH; col++) {
-				searchGrid[row][col] = (int) ((ArrayList) gridArrayList.get(row)).get(col);
-			}
-		}
-		return searchGrid;
-	}*/
-	
-	/*private static boolean searchRecurse(ArrayList newSearchGrid, HashSet[][] newPencilMarks, int marksIndex) {
-		//int[][] newSearchGrid = new int[GRID_LENGTH][GRID_LENGTH];
-		//HashSet[][] newPencilMarks = new HashSet[GRID_LENGTH][GRID_LENGTH];
-		
-		//copyContents(searchGrid, newSearchGrid);
-		//copyContents (pencilMarks, newPencilMarks);
-		
-		int rowCount = 0;
-		int colCount = 0;
-		while ((rowCount < GRID_LENGTH) && (colCount < GRID_LENGTH) && (int)((ArrayList) newSearchGrid.get(rowCount)).get(colCount) != 0) {
-			 colCount++;
-			 if (colCount == GRID_LENGTH) {
-				 colCount = 0;
-				 rowCount++;
-			 }
-		}
-		
-		if (colCount < GRID_LENGTH && rowCount < GRID_LENGTH) {
-			if (marksIndex < newPencilMarks[rowCount][colCount].size()) {
-				ArrayList newInstance = new ArrayList();
-				newInstance.addAll(newSearchGrid);
-				searchRecurse(newInstance, newPencilMarks, marksIndex+1);
-			
-				System.out.println("Row: " + rowCount + " Col: " + colCount + " Marks Index: " + marksIndex);
-				//printGrid(newSearchGrid, newPencilMarks);
-				ArrayList newInstance2 = new ArrayList();
-				newInstance2.addAll(newSearchGrid);
-				((ArrayList) newInstance2.get(rowCount)).set(colCount, (int) newPencilMarks[rowCount][colCount].toArray()[marksIndex]);
-				if (checkValidityList(newInstance2, newPencilMarks)) {
-					int[][] searchGridArray = arraylistToArray(newInstance2);
-					printGrid(searchGridArray, newPencilMarks);
-				}
-				searchRecurse(newInstance2, newPencilMarks, 0);
-				((ArrayList) newSearchGrid.get(rowCount)).set(colCount, 0);
-				//newSearchGrid[rowCount][colCount] = 0;
-			}*/
-			/*for (int pencilCount = 0; pencilCount < newPencilMarks[rowCount][colCount].size(); pencilCount++) {
-				newSearchGrid[rowCount][colCount] = (int) newPencilMarks[rowCount][colCount].toArray()[pencilCount];
-				//System.out.println("Count" + colCount + ":");
-				//printGrid(newSearchGrid, newPencilMarks);
-				//newPencilMarks[rowCount][colCount].remove(newPencilMarks[rowCount][colCount].toArray()[pencilCount]);
-				if (checkValidity(newSearchGrid, newPencilMarks)) {
-					printGrid(newSearchGrid, newPencilMarks);
-				}
-				//System.out.println(rowCount + " " + colCount);
-				searchRecurse(newSearchGrid, newPencilMarks);
-				newSearchGrid[rowCount][colCount] = 0;
-				//System.out.println("Count" + colCount + ":");
-				//printGrid(newSearchGrid, newPencilMarks);
-			}*/
-	/*	}
-		return true;
-	}*/
 	/****************************************
 	 * 
 	 * CHECK CONTRADICTION METHODS
 	 * 
 	 *****************************************/
+	
+	/**
+	 * Check for contradictions within a grid
+	 */		
 	private static boolean checkContradiction(int[][] currGrid, HashSet[][] pencilMarkers) {
 		boolean contradiction = false;
 		if (checkColContra(currGrid)) {
@@ -309,9 +248,15 @@ public class main {
 			contradiction = true;
 		}
 		pivotGridAndMarks(currGrid, pencilMarkers);
+		if (checkSubgridsContra(currGrid)) {
+			contradiction = true;
+		}
 		return contradiction;
 	}
-	
+
+	/**
+	 * Check for contradictions within a column
+	 */	
 	private static boolean checkColContra(int[][] currGrid) {
 		for (int row = 0; row < GRID_LENGTH; row++) {
 			HashSet totalNumbers = new HashSet();
@@ -329,12 +274,41 @@ public class main {
 		return false;
 	}
 	
+	/**
+	 * Check for contradictions within a subgrid
+	 */	
+	private static boolean checkSubgridsContra(int[][] currGrid) {
+
+		for (int rowSection = 0; rowSection < SUB_LENGTH; rowSection++) {
+			for (int colSection = 0; colSection < SUB_LENGTH; colSection++) {
+				for (int rowInc = 0; rowInc < SUB_LENGTH; rowInc++) {
+					for (int colInc = 0; colInc < SUB_LENGTH; colInc++) {
+						HashSet totalNumbers = new HashSet();
+						int currValue = currGrid[(rowSection*SUB_LENGTH)+rowInc][(colSection*SUB_LENGTH)+colInc];
+						if (currValue != 0) {
+							if (totalNumbers.contains(currValue)) {
+								return true;
+							} else {
+								totalNumbers.add(currValue);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return false;
+	}	
+	
 	/****************************************
 	 * 
 	 * CHECK VALIDITY METHODS
 	 * 
 	 *****************************************/
 	
+	/**
+	 * Check a grid to see if it is a valid solved Sudoku grid
+	 */	
 	private static boolean checkValidity(int[][] currGrid, HashSet[][] pencilMarks) {
 		if (!checkColumns(currGrid)) {
 			return false;
@@ -352,7 +326,10 @@ public class main {
 		}
 		return true;
 	}
-	
+
+	/**
+	 * Check a subgrid to see if it is valid
+	 */
 	private static boolean checkSubgrids(int[][] currGrid) {
 		HashSet oneToNine = new HashSet();
 		for (int number = 1; number <= GRID_LENGTH; number++) {
@@ -360,13 +337,13 @@ public class main {
 		}
 		
 		HashSet testGridSet = new HashSet();
-		for (int rowSection = 0; rowSection < 3; rowSection++) {
-			for (int colSection = 0; colSection < 3; colSection++) {
+		for (int rowSection = 0; rowSection < SUB_LENGTH; rowSection++) {
+			for (int colSection = 0; colSection < SUB_LENGTH; colSection++) {
 				testGridSet.clear();
-				for (int rowInc = 0; rowInc < 3; rowInc++) {
-					for (int colInc = 0; colInc < 3; colInc++) {
+				for (int rowInc = 0; rowInc < SUB_LENGTH; rowInc++) {
+					for (int colInc = 0; colInc < SUB_LENGTH; colInc++) {
 						testGridSet.add(
-								currGrid[(rowSection*3)+rowInc][(colSection*3)+colInc]);
+								currGrid[(rowSection*SUB_LENGTH)+rowInc][(colSection*SUB_LENGTH)+colInc]);
 					}
 				}
 				if (!oneToNine.equals(testGridSet)) {
@@ -378,6 +355,9 @@ public class main {
 		return true;
 	}
 	
+	/**
+	 * Check a column to see if it is valid 
+	 */
 	private static boolean checkColumns(int[][] currGrid) {
 		HashSet oneToNine = new HashSet();
 		for (int number = 1; number <= GRID_LENGTH; number++) {
@@ -404,17 +384,11 @@ public class main {
 	 * PENCIL MARKER METHODS
 	 * 
 	 *****************************************/
-	
-	private static boolean clearMarkers(int[][] currGrid,
-			HashSet[][] pencilMarks) {
-		boolean changesMade = false;
-		if (clearColumns(currGrid, pencilMarks)) {
-			changesMade = true;
-		}
-		
-		return changesMade;
-	}
 
+	/**
+	 * Check each unoccupied cell to see if any common markers can be 
+	 * removed from ohter cells
+	 */
 	private static boolean clearColumns(int[][] currGrid,
 			HashSet[][] pencilMarks) {
 		boolean changesMade = false;
@@ -430,19 +404,16 @@ public class main {
 			}
 		}
 		
-		/*ArrayList colVals = new ArrayList();
-		colVals.add(0);
-		if (removePencilsCol(currGrid, pencilMarks, 1, 0, colVals)) {
-			changesMade = true;
-		}*/
-		
 		return changesMade;
 	}
 
+	
+	/**
+	 * Recursive method that removes any shared pencil marks
+	 */
 	private static boolean removePencilsCol(int[][] currGrid,
 			HashSet[][] pencilMarks, int row, int col, ArrayList colVals) {
 		boolean changesMade = false;
-		//System.out.println(colVals.size());
 		for (int traverseCol = col; traverseCol < GRID_LENGTH; traverseCol++) {
 			
 			if (currGrid[row][traverseCol] == 0) {
@@ -450,12 +421,11 @@ public class main {
 				HashSet totalPencils = new HashSet();
 				for (int currVals = 0; currVals < colVals.size(); currVals++) {
 					totalPencils.addAll(pencilMarks[row][(int)colVals.get(currVals)]);
-					//System.out.print(pencilMarks[row][(int)colVals.get(currVals)]);
 				}
 				
+				// when the total numbers across different cells are also equal to the total cells selected,
+				// all other cells within the same column can have those numbers removed from their pencil marks
 				if (totalPencils.size() < colVals.size()) {
-					//System.out.println("total: " + totalPencils);
-					//System.out.println(colVals.size());
 					for (int newCol = 0; newCol < GRID_LENGTH; newCol++) {
 						if (currGrid[row][newCol] == 0) {
 							boolean containsFlag = false;
@@ -467,9 +437,11 @@ public class main {
 							if (!containsFlag) {
 								for (int pencilParse = 0; pencilParse < pencilMarks[row][newCol].size(); pencilParse++) {
 									if (totalPencils.contains(pencilMarks[row][newCol].toArray()[pencilParse])) {
-										//System.out.println("Removing " + pencilMarks[row][newCol].toArray()[pencilParse] + " from col " + newCol);
+										// Remove the shared pencil marks from other cells
 										pencilMarks[row][newCol].remove(pencilMarks[row][newCol].toArray()[pencilParse]);
-										if (pencilMarks[row][newCol].size() == 1) {
+										if (pencilMarks[row][newCol].size() == 1) { 
+											// eliminated all pencil marks to leave one
+											// can assign the value as it is the last option left
 											currGrid[row][newCol] = (int)pencilMarks[row][newCol].toArray()[0];
 											System.out.println("Put in " + (int)pencilMarks[row][newCol].toArray()[0] + " at row " + 
 												row + " col " + newCol);
@@ -481,13 +453,10 @@ public class main {
 							}
 						}
 					}
-					/*for (int currVals = 0; currVals < colVals.size(); currVals++) {
-						System.out.print(pencilMarks[row][(int)colVals.get(currVals)] + " ");
-					}
-					System.out.println();*/
 				}
 				
 				if (traverseCol < GRID_LENGTH) {
+					// recursively check all other combinations
 					if (removePencilsCol(currGrid, pencilMarks, row, traverseCol+1, colVals)) {
 						changesMade = true;
 					}
@@ -502,6 +471,9 @@ public class main {
 		return changesMade;
 	}
 
+	/**
+	 * Runs pencil mark removing methods if a cell with a value is found
+	 */
 	private static boolean clearNumbers(int[][] currGrid,
 			HashSet[][] pencilMarks) {
 		boolean changesMade = false;
@@ -518,6 +490,10 @@ public class main {
 		return changesMade;
 	}
 
+	/**
+	 * Runs the three pencil marking methods, returns true 
+	 * if any changes were made 
+	 */
 	private static boolean removePencilMethods(int[][] currGrid,
 			HashSet[][] pencilMarks, int row, int col) {
 		boolean changesMade = false;
@@ -533,18 +509,22 @@ public class main {
 		return changesMade;
 	}
 
+	/**
+	 * Checks one subgrid against one value within the subgrid,
+	 * removes any pencil marks if it matches the value
+	 */
 	private static boolean removePencilSubgrid(int[][] currGrid,
 			HashSet[][] pencilMarks, int row, int col) {
 		boolean changesMade = false;
-		int subGridRowSection = row / 3;
-		int subGridColSection = col / 3;
+		int subGridRowSection = row / SUB_LENGTH;
+		int subGridColSection = col / SUB_LENGTH;
 		int gridValue = currGrid[row][col];
 		
-		for (int rowInc = 0; rowInc < 3; rowInc++) {
-			if (rowInc != row % 3) {
-				for (int colInc = 0; colInc < 3; colInc++) {
-					if (colInc != col % 3) {
-						if (pencilMarks[(subGridRowSection*3) + rowInc][(subGridColSection*3) + colInc].remove(gridValue)) {
+		for (int rowInc = 0; rowInc < SUB_LENGTH; rowInc++) {
+			if (rowInc != row % SUB_LENGTH) {
+				for (int colInc = 0; colInc < SUB_LENGTH; colInc++) {
+					if (colInc != col % SUB_LENGTH) {
+						if (pencilMarks[(subGridRowSection*SUB_LENGTH) + rowInc][(subGridColSection*SUB_LENGTH) + colInc].remove(gridValue)) {
 							changesMade = true;
 						}						
 					}
@@ -554,7 +534,11 @@ public class main {
 		
 		return changesMade;
 	}
-
+	
+	/**
+	 * Checks one row against one value within the row,
+	 * removes any pencil marks if it matches the value
+	 */
 	private static boolean removePencilRow(int[][] currGrid,
 			HashSet[][] pencilMarks, int row, int col) {
 		boolean changesMade = false;
@@ -569,6 +553,10 @@ public class main {
 		return changesMade;
 	}
 	
+	/**
+	 * Checks one column against one value within the column,
+	 * removes any pencil marks if it matches the value
+	 */
 	private static boolean removePencilCol(int[][] currGrid,
 			HashSet[][] pencilMarks, int row, int col) {
 		boolean changesMade = false;
@@ -582,6 +570,7 @@ public class main {
 		}
 		return changesMade;
 	}
+	
 	/**
 	 * Simply enter values into the pencilMarks HashSet array
 	 */
@@ -595,7 +584,6 @@ public class main {
 					}
 				} else {
 					pencilMarks[row][col].add(currGrid[row][col]);
-					
 				}
 			}
 		}
@@ -613,13 +601,13 @@ public class main {
 	 * Goes through each number in the grid and passes them  to ParseSubgrids
 	 * to derive more numbers
 	 */
-	private static boolean PlaceInNumbers(int[][] currGrid, HashSet[][] pencilMarks, int[] numbersLeft) {
+	private static boolean placeInNumbers(int[][] currGrid, HashSet[][] pencilMarks, int[] numbersLeft) {
 		boolean changesMade = false;
 		for (int row = 0; row < GRID_LENGTH; row++) {
 			for (int col = 0; col < GRID_LENGTH; col++) {
 				int currNumber = currGrid[row][col];
 				if (currNumber != 0) {
-					if (ParseSubgrids(currGrid, pencilMarks, row, col, numbersLeft)) {
+					if (parseSubgrids(currGrid, pencilMarks, row, col, numbersLeft)) {
 						changesMade = true;
 					}
 				}
@@ -632,10 +620,10 @@ public class main {
 	/**
 	 * Uses the current number and checks against adjacent columns
 	 */
-	private static boolean ParseSubgrids(int[][] currGrid, HashSet[][] pencilMarks, int row, int col,
+	private static boolean parseSubgrids(int[][] currGrid, HashSet[][] pencilMarks, int row, int col,
 			int[] numbersLeft) {
-		int subGridRowSection = row / 3;
-		int subGridColSection = col / 3;
+		int subGridRowSection = row / SUB_LENGTH;
+		int subGridColSection = col / SUB_LENGTH;
 
 		int currRow = 0;
 		int currGridValue = currGrid[row][col];
@@ -645,14 +633,14 @@ public class main {
 
 		boolean changesMade = false;
 
-		for (int rowInc = 0; rowInc < 3; rowInc++) {
-			currRow = ((subGridRowSection * 3) + rowInc);
+		for (int rowInc = 0; rowInc < SUB_LENGTH; rowInc++) {
+			currRow = ((subGridRowSection * SUB_LENGTH) + rowInc);
 			if (currRow != row) {	// don't parse the current row
-				for (int currColSection = 0; currColSection < 3; currColSection++) {
+				for (int currColSection = 0; currColSection < SUB_LENGTH; currColSection++) {
 					if (currColSection != subGridColSection) { // don't parse the current column set
-						//System.out.println(currRow + ", " + (currCol * 3) + " to " + (currCol * 3 + 2));
-						for (int parseCol = 0; parseCol < 3; parseCol++) {
-							parseCurrCol = (currColSection * 3) + parseCol;
+						//System.out.println(currRow + ", " + (currCol * SUB_LENGTH) + " to " + (currCol * SUB_LENGTH + 2));
+						for (int parseCol = 0; parseCol < SUB_LENGTH; parseCol++) {
+							parseCurrCol = (currColSection * SUB_LENGTH) + parseCol;
 							if (currGrid[currRow][parseCurrCol] == currGridValue) {	// match found
 								if (parseMatch(currGrid, pencilMarks, row, col, numbersLeft, currRow, parseCurrCol)) {
 									changesMade = true;
@@ -661,16 +649,16 @@ public class main {
 						}
 						// if column is full with over values
 						// or if the value cannot be put in because of other rows
-						if (currGrid[currRow][(currColSection * 3)] != currGridValue &&
-								currGrid[currRow][(currColSection * 3)+1] != currGridValue && 
-								currGrid[currRow][(currColSection * 3)+2] != currGridValue ) {
-							boolean checkCol1 = checkValWithCol(currGrid, (currColSection * 3), currRow, currGridValue);
-							boolean checkCol2 = checkValWithCol(currGrid, (currColSection * 3)+1, currRow, currGridValue);
-							boolean checkCol3 = checkValWithCol(currGrid, (currColSection * 3)+2, currRow, currGridValue);
+						if (currGrid[currRow][(currColSection * SUB_LENGTH)] != currGridValue &&
+								currGrid[currRow][(currColSection * SUB_LENGTH)+1] != currGridValue && 
+								currGrid[currRow][(currColSection * SUB_LENGTH)+2] != currGridValue ) {
+							boolean checkCol1 = checkValWithCol(currGrid, (currColSection * SUB_LENGTH), currRow, currGridValue);
+							boolean checkCol2 = checkValWithCol(currGrid, (currColSection * SUB_LENGTH)+1, currRow, currGridValue);
+							boolean checkCol3 = checkValWithCol(currGrid, (currColSection * SUB_LENGTH)+2, currRow, currGridValue);
 							
 							if (checkCol1 && checkCol2 && checkCol3) {
-								int targetRow = (subGridRowSection * 3) + (3 - (currRow % 3) - (row % 3));
-								int targetColumn = 3 - (currColSection % 3) - (subGridColSection %3);
+								int targetRow = (subGridRowSection * SUB_LENGTH) + (SUB_LENGTH - (currRow % SUB_LENGTH) - (row % SUB_LENGTH));
+								int targetColumn = SUB_LENGTH - (currColSection % SUB_LENGTH) - (subGridColSection % SUB_LENGTH);
 								if (parseMatch(currGrid, pencilMarks, row, col, numbersLeft, targetRow, parseCurrCol)) {
 									changesMade = true;
 								}
@@ -693,13 +681,12 @@ public class main {
 			int parseCurrCol) {
 		int parseTargetCol;
 		int parseTargetRow;
-		int subGridRowSection = row / 3;
+		int subGridRowSection = row / SUB_LENGTH;
 		int currGridValue = currGrid[row][col];
 		boolean changesMade = false;
-		//System.out.println("Match found at: " + currRow + ", " + parseCurrCol);
-		parseTargetRow = (subGridRowSection * 3) + (3 - (currRow % 3) - (row % 3));
-		parseTargetCol =  (3 - (parseCurrCol / 3) - (col / 3)) * 3;
-		//System.out.println("Parsing: " + parseTargetRow + ", " + parseTargetCol);
+
+		parseTargetRow = (subGridRowSection * SUB_LENGTH) + (SUB_LENGTH - (currRow % SUB_LENGTH) - (row % SUB_LENGTH));
+		parseTargetCol =  (SUB_LENGTH - (parseCurrCol / SUB_LENGTH) - (col / SUB_LENGTH)) * SUB_LENGTH;
 		
 		// check to make sure the value isn't already set
 		if (currGrid[parseTargetRow][parseTargetCol] != currGridValue &&
@@ -824,28 +811,32 @@ public class main {
 	 * Formats and prints a grid
 	 */
 	private static void printGrid(int[][] puzzleGrid, HashSet[][] pencilMarks) {
+		System.out.println("[ Grid ]          \t\t[ Pencil Marks ]");
 		for (int row = 0; row < GRID_LENGTH; row++) {
-			if (row % 3 == 0) {
-				System.out.println("----------------------\t\t------------------------------------------------------------------");
+			if (row % SUB_LENGTH == 0) {
+				System.out.println("----------------------\t\t-----------------------------------------------------------------------");
 			}
 			for (int col = 0; col < GRID_LENGTH; col++) {
-				if (col % 3 == 0) {
+				if (col % SUB_LENGTH == 0) {
 					System.out.print("|");
 				}
 				System.out.print(puzzleGrid[row][col] + " ");
 			}
 			System.out.print("|\t\t");
 			for (int col = 0; col < GRID_LENGTH; col++) {
-				if (col % 3 == 0) {
+				if (col % SUB_LENGTH == 0) {
 					System.out.print("|");
 				}
 				System.out.print(formatPencils(pencilMarks[row][col]) + "\t");
 			}
 			System.out.println("|");
 		}
-		System.out.println("----------------------\t\t------------------------------------------------------------------");
+		System.out.println("----------------------\t\t-----------------------------------------------------------------------");
 	}
 	
+	/**
+	 * Simple function to format and compact the pencil marks
+	 */
 	private static String formatPencils(HashSet pencilMark) {
 		String returnString = "";
 		for (int count = 0; count < pencilMark.size(); count++) {
