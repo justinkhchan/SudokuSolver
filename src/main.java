@@ -202,10 +202,15 @@ public class Main {
 				 rowCount++;
 			 }
 		}
+		
+
 	
 		if (colCount < GRID_LENGTH && rowCount < GRID_LENGTH) {
-			for (int pencilCount = 0; pencilCount < pencilMarks[rowCount][colCount].size(); pencilCount++) {
-				currGrid[rowCount][colCount] = (int) pencilMarks[rowCount][colCount].toArray()[pencilCount];
+			
+			String returnString = "";
+			Iterator iterator = pencilMarks[rowCount][colCount].iterator();
+			while (iterator.hasNext()) {
+				currGrid[rowCount][colCount] = (int) iterator.next();
 
 				// valid grid found
 				if (checkValidity(currGrid, pencilMarks)) {
@@ -259,7 +264,7 @@ public class Main {
 	 */	
 	private static boolean checkColContra(int[][] currGrid) {
 		for (int row = 0; row < GRID_LENGTH; row++) {
-			HashSet totalNumbers = new HashSet();
+			HashSet <Integer> totalNumbers = new HashSet <Integer> ();
 			for (int col = 0; col < GRID_LENGTH; col++) {
 				int currValue = currGrid[row][col];
 				if (currValue != 0) {
@@ -283,7 +288,7 @@ public class Main {
 			for (int colSection = 0; colSection < SUB_LENGTH; colSection++) {
 				for (int rowInc = 0; rowInc < SUB_LENGTH; rowInc++) {
 					for (int colInc = 0; colInc < SUB_LENGTH; colInc++) {
-						HashSet totalNumbers = new HashSet();
+						HashSet <Integer> totalNumbers = new HashSet <Integer> ();
 						int currValue = currGrid[(rowSection*SUB_LENGTH)+rowInc][(colSection*SUB_LENGTH)+colInc];
 						if (currValue != 0) {
 							if (totalNumbers.contains(currValue)) {
@@ -331,12 +336,12 @@ public class Main {
 	 * Check a subgrid to see if it is valid
 	 */
 	private static boolean checkSubgrids(int[][] currGrid) {
-		HashSet oneToNine = new HashSet();
+		HashSet <Integer> oneToNine = new HashSet <Integer>();
 		for (int number = 1; number <= GRID_LENGTH; number++) {
 			oneToNine.add(number);
 		}
 		
-		HashSet testGridSet = new HashSet();
+		HashSet <Integer>testGridSet = new HashSet <Integer>();
 		for (int rowSection = 0; rowSection < SUB_LENGTH; rowSection++) {
 			for (int colSection = 0; colSection < SUB_LENGTH; colSection++) {
 				testGridSet.clear();
@@ -359,12 +364,12 @@ public class Main {
 	 * Check a column to see if it is valid 
 	 */
 	private static boolean checkColumns(int[][] currGrid) {
-		HashSet oneToNine = new HashSet();
+		HashSet <Integer> oneToNine = new HashSet <Integer> ();
 		for (int number = 1; number <= GRID_LENGTH; number++) {
 			oneToNine.add(number);
 		}
 		
-		HashSet testColumnSet = new HashSet();
+		HashSet <Integer> testColumnSet = new HashSet <Integer> ();
 		
 		for (int row = 0; row < GRID_LENGTH; row++) {
 			testColumnSet.clear();
@@ -418,7 +423,7 @@ public class Main {
 			
 			if (currGrid[row][traverseCol] == 0) {
 				colVals.add(traverseCol);
-				HashSet totalPencils = new HashSet();
+				HashSet <Integer> totalPencils = new HashSet <Integer> ();
 				for (int currVals = 0; currVals < colVals.size(); currVals++) {
 					totalPencils.addAll(pencilMarks[row][(int)colVals.get(currVals)]);
 				}
@@ -837,10 +842,11 @@ public class Main {
 	/**
 	 * Simple function to format and compact the pencil marks
 	 */
-	private static String formatPencils(HashSet pencilMark) {
+	private static String formatPencils(HashSet <Integer> pencilMark) {
 		String returnString = "";
-		for (int count = 0; count < pencilMark.size(); count++) {
-			returnString = returnString + pencilMark.toArray()[count];
+		Iterator<Integer> iterator = pencilMark.iterator();
+		while (iterator.hasNext()) {
+			returnString = returnString + iterator.next();
 		}
 		return returnString;
 	}

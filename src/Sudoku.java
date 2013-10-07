@@ -1,4 +1,9 @@
 
+/**
+ * @author Justin Chan
+ * @description
+ * Simple container for the Sudoku grid
+ */
 public class Sudoku {
 
 	private static final int GRID_LENGTH = 9;
@@ -9,10 +14,8 @@ public class Sudoku {
 			for (int colCount = 0; colCount < GRID_LENGTH; colCount++) {
 				sudokuGrid[copyCount][colCount] = grid[copyCount][colCount];
 			}
-			//System.arraycopy(oldGrid[copyCount], 0, newGrid[copyCount], 0, oldGrid[copyCount].length);
 		}
 	}
-
 	
 	public int[][] returnGrid() {
 		int[][] newGrid = new int[GRID_LENGTH][GRID_LENGTH];
@@ -20,7 +23,6 @@ public class Sudoku {
 			for (int colCount = 0; colCount < GRID_LENGTH; colCount++) {
 				newGrid[copyCount][colCount] = sudokuGrid[copyCount][colCount];
 			}
-			//System.arraycopy(oldGrid[copyCount], 0, newGrid[copyCount], 0, oldGrid[copyCount].length);
 		}		
 		return newGrid;
 	}
